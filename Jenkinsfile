@@ -2,27 +2,48 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven'
+        maven 'maven'   // Name must match Jenkins Global Tool Configuration
     }
 
     stages {
 
-        stage('Build & Test') {
+        stage('Checkout') {
             steps {
-                sh 'mvn clean install'
+                git branch: 'main', url: 'https://github.com/DakshhBN/MavenChrome.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+
+        stage('Run Application') {
+            steps {
+                sh 'mvn exec:java -Dexec.mainClass="com.example.App"'
             }
         }
     }
 
     post {
-        always {
-            junit 'target/surefire-reports/*.xml'
-        }
         success {
-            echo 'Selenium Tests Passed!'
+            echo 'Build and deployment successful!'
         }
         failure {
-            echo 'Build or Tests Failed!'
+            echo 'Build failed!'
         }
     }
 }
